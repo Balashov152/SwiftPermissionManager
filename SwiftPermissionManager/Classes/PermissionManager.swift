@@ -72,24 +72,28 @@ class PermissionManager: NSObject {
             }
 
         case .notification:
-            UNUserNotificationCenter.current().getNotificationSettings { settings in
-                switch settings.authorizationStatus {
-                case .notDetermined, .denied, .provisional:
-                    if needRequest {
-                        self.requestPermission(type: type, completion: { granted in
-                            if granted {
-                                access?()
-                            } else {
-                                denied?()
-                            }
-                        })
-                    } else {
-                        denied?()
+            if #available(iOS 10.0, *) {
+                UNUserNotificationCenter.current().getNotificationSettings { settings in
+                    switch settings.authorizationStatus {
+                    case .notDetermined, .denied, .provisional:
+                        if needRequest {
+                            self.requestPermission(type: type, completion: { granted in
+                                if granted {
+                                    access?()
+                                } else {
+                                    denied?()
+                                }
+                            })
+                        } else {
+                            denied?()
+                        }
+                        
+                    case .authorized:
+                        access?()
                     }
-
-                case .authorized:
-                    access?()
                 }
+            } else {
+                // Fallback on earlier versions
             }
 
         case .photoLibrary:
@@ -182,12 +186,16 @@ class PermissionManager: NSObject {
                 error?("Device is simulator. Simulator not supported notifications")
                 return
             } else {
-                UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert]) { granted, err in
-                    guard error == nil else {
-                        error?(err!.localizedDescription)
-                        return
+                if #available(iOS 10.0, *) {
+                    UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert]) { granted, err in
+                        guard error == nil else {
+                            error?(err!.localizedDescription)
+                            return
+                        }
+                        completion(granted)
                     }
-                    completion(granted)
+                } else {
+                    // Fallback on earlier versions
                 }
             }
         case .mic:
@@ -248,9 +256,13 @@ class PermissionManager: NSObject {
         if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
             if UIApplication.shared.canOpenURL(settingsUrl) {
                 alertController.addAction(UIAlertAction(title: "Открыть настройки", style: .default, handler: { (_) -> Void in
-                    UIApplication.shared.open(settingsUrl, completionHandler: { success in
-                        print("Settings opened: \(success)") // Prints true
-                    })
+                    if #available(iOS 10.0, *) {
+                        UIApplication.shared.open(settingsUrl, completionHandler: { success in
+                            print("Settings opened: \(success)") // Prints true
+                        })
+                    } else {
+                        // Fallback on earlier versions
+                    }
                 }))
             }
         }
