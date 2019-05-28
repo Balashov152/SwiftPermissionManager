@@ -12,7 +12,7 @@ import Foundation
 import Photos
 import UserNotifications
 
-class PermissionManager: NSObject {
+open class PermissionManager {
     private var visible: UIViewController? {
         var vc = UIApplication.shared.delegate?.window??.rootViewController
         
@@ -273,7 +273,7 @@ class PermissionManager: NSObject {
 }
 
 extension PermissionManager {
-    enum PermissionType {
+    public enum PermissionType {
         case notification, mic, camera, whenInUseLocation, alwaysLocation, photoLibrary, contacts
     }
 }
