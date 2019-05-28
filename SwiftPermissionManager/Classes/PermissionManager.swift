@@ -12,7 +12,9 @@ import Foundation
 import Photos
 import UserNotifications
 
-open class PermissionManager {
+public struct PermissionManager {
+    public init() {}
+    
     private var visible: UIViewController? {
         var vc = UIApplication.shared.delegate?.window??.rootViewController
         
@@ -186,7 +188,6 @@ open class PermissionManager {
                 error?("Device is simulator. Simulator not supported notifications")
                 return
             } else {
-                if #available(iOS 10.0, *) {
                     UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert]) { granted, err in
                         guard error == nil else {
                             error?(err!.localizedDescription)
@@ -194,9 +195,6 @@ open class PermissionManager {
                         }
                         completion(granted)
                     }
-                } else {
-                    // Fallback on earlier versions
-                }
             }
         case .mic:
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
@@ -256,13 +254,9 @@ open class PermissionManager {
         if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
             if UIApplication.shared.canOpenURL(settingsUrl) {
                 alertController.addAction(UIAlertAction(title: "Открыть настройки", style: .default, handler: { (_) -> Void in
-                    if #available(iOS 10.0, *) {
                         UIApplication.shared.open(settingsUrl, completionHandler: { success in
                             print("Settings opened: \(success)") // Prints true
                         })
-                    } else {
-                        // Fallback on earlier versions
-                    }
                 }))
             }
         }
