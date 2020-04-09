@@ -11,6 +11,7 @@ import Contacts
 import Foundation
 import Photos
 import UserNotifications
+import UIKit
 
 public struct PermissionManager {
     public init() {}
@@ -249,20 +250,22 @@ public struct PermissionManager {
             message = "Если вы хотите пригласить кого нибудь из ваших контактов в приложение, разрешите доступ в настройках"
         }
 
-        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        DispatchQueue.main.async { [weak visible] in
+            let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
 
-        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-            if UIApplication.shared.canOpenURL(settingsUrl) {
-                alertController.addAction(UIAlertAction(title: "Открыть настройки", style: .default, handler: { (_) -> Void in
-                        UIApplication.shared.open(settingsUrl, completionHandler: { success in
-                            print("Settings opened: \(success)") // Prints true
-                        })
-                }))
+            if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                if UIApplication.shared.canOpenURL(settingsUrl) {
+                    alertController.addAction(UIAlertAction(title: "Открыть настройки", style: .default, handler: { (_) -> Void in
+                            UIApplication.shared.open(settingsUrl, completionHandler: { success in
+                                print("Settings opened: \(success)") // Prints true
+                            })
+                    }))
+                }
             }
-        }
 
-        alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
-        visible?.present(alertController, animated: true, completion: nil)
+            alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
+            visible?.present(alertController, animated: true, completion: nil)
+        }
     }
 }
 
