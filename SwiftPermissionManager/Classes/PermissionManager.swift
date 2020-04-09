@@ -15,16 +15,6 @@ import UIKit
 
 public struct PermissionManager {
     public init() {}
-    
-    private var visible: UIViewController? {
-        var vc = UIApplication.shared.delegate?.window??.rootViewController
-        
-        while let presentedVC = vc?.presentedViewController {
-            vc = presentedVC
-        }
-        
-        return vc
-    }
 
     public func checkPermissions(types: [PermissionType], deniedType: ((PermissionType) -> Void)? = nil, allAccess: (() -> Void)? = nil) {
         var accessTypes: [PermissionType] = []
@@ -250,7 +240,7 @@ public struct PermissionManager {
             message = "Если вы хотите пригласить кого нибудь из ваших контактов в приложение, разрешите доступ в настройках"
         }
 
-        DispatchQueue.main.async { [weak visible] in
+        DispatchQueue.main.async {
             let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
 
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
@@ -262,9 +252,14 @@ public struct PermissionManager {
                     }))
                 }
             }
-
+            
+            var visibleVc = UIApplication.shared.delegate?.window??.rootViewController
+            while let presentedVC = visibleVc?.presentedViewController {
+                visibleVc = presentedVC
+            }
+            
             alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
-            visible?.present(alertController, animated: true, completion: nil)
+            visibleVc?.present(alertController, animated: true, completion: nil)
         }
     }
 }
