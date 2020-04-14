@@ -212,12 +212,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = WY8RLW4T2J;
+						DevelopmentTeam = 6XNMN66Z79;
 						LastSwiftMigration = 0900;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = WY8RLW4T2J;
+						DevelopmentTeam = 6XNMN66Z79;
 						LastSwiftMigration = 0900;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -426,7 +426,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -472,7 +472,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -482,7 +482,7 @@
 			baseConfigurationReference = 19D8BC27A15B948726BDC21C /* Pods-SwiftPermissionManager_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = WY8RLW4T2J;
+				DEVELOPMENT_TEAM = 6XNMN66Z79;
 				INFOPLIST_FILE = SwiftPermissionManager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -497,7 +497,7 @@
 			baseConfigurationReference = 991966FB1AA41E2E3115CF49 /* Pods-SwiftPermissionManager_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = WY8RLW4T2J;
+				DEVELOPMENT_TEAM = 6XNMN66Z79;
 				INFOPLIST_FILE = SwiftPermissionManager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -511,7 +511,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A01BB2AC5D3763D2122C2086 /* Pods-SwiftPermissionManager_Tests.debug.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = WY8RLW4T2J;
+				DEVELOPMENT_TEAM = 6XNMN66Z79;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -533,7 +533,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4B06AC93B830FA38E9D58CD1 /* Pods-SwiftPermissionManager_Tests.release.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = WY8RLW4T2J;
+				DEVELOPMENT_TEAM = 6XNMN66Z79;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",

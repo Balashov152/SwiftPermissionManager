@@ -20,10 +20,5 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    private func checkPersmission() {
-        PermissionManager().checkPermission(type: .camera, createRequestIfNeed: true, denied: <#T##(() -> Void)?##(() -> Void)?##() -> Void#>, access: <#T##(() -> Void)?##(() -> Void)?##() -> Void#>)
-    }
-
 }
 
