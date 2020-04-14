@@ -15,10 +15,10 @@ import UIKit
 
 public struct PermissionManager {
     public init() {}
-
+    
     public func checkPermissions(types: [PermissionType], deniedType: ((PermissionType) -> Void)? = nil, allAccess: (() -> Void)? = nil) {
         var accessTypes: [PermissionType] = []
-
+        
         for type in types {
             checkPermission(type: type, createRequestIfNeed: false, denied: {
                 deniedType?(type)
@@ -27,16 +27,16 @@ public struct PermissionManager {
                 accessTypes.append(type)
             }
         }
-
+        
         if types == accessTypes {
             allAccess?()
         }
     }
-
+    
     /**
      Check permission for define type.
      Parameter needRequest installed to true for TypePermission(.whenInUseLocation, .alwaysLocation) associated with location will not call access and denied closures.
-
+     
      - parameter type: Define type for check permission.
      - parameter needRequest: if set to true, will be send request to dependence type. Default value is false.
      - parameter access: This closure will be called if access is available. If needRequest installed to true and authorization status is denied then will be call after the user responds on request.
@@ -50,20 +50,22 @@ public struct PermissionManager {
                 case .notDetermined, .restricted, .denied:
                     assert(!needRequest, "request localiton permission must be use in localtion manager")
                     denied?()
-
+                    
                 case .authorizedWhenInUse:
                     if type == .whenInUseLocation {
                         access?()
                     }
-
+                    
                 case .authorizedAlways:
                     access?()
+                @unknown default:
+                    denied?()
                 }
-
+                
             } else {
                 print("Location services are not enabled")
             }
-
+            
         case .notification:
             if #available(iOS 10.0, *) {
                 UNUserNotificationCenter.current().getNotificationSettings { settings in
@@ -83,12 +85,15 @@ public struct PermissionManager {
                         
                     case .authorized:
                         access?()
+                    @unknown default:
+                        denied?()
+                        
                     }
                 }
             } else {
                 // Fallback on earlier versions
             }
-
+            
         case .photoLibrary:
             switch PHPhotoLibrary.authorizationStatus() {
             case .authorized:
@@ -105,8 +110,10 @@ public struct PermissionManager {
                 } else {
                     denied?()
                 }
+            @unknown default:
+                denied?()
             }
-
+            
         case .mic:
             switch AVAudioSession.sharedInstance().recordPermission {
             case .granted:
@@ -123,6 +130,8 @@ public struct PermissionManager {
                 } else {
                     denied?()
                 }
+            @unknown default:
+                denied?()
             }
         case .camera:
             switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -140,8 +149,10 @@ public struct PermissionManager {
                 } else {
                     denied?()
                 }
+            @unknown default:
+                denied?()
             }
-
+            
         case .contacts:
             switch CNContactStore.authorizationStatus(for: .contacts) {
             case .authorized:
@@ -158,10 +169,12 @@ public struct PermissionManager {
                 } else {
                     denied?()
                 }
+            @unknown default:
+                denied?()
             }
         }
     }
-
+    
     public func requestPermission(type: PermissionType, completion: @escaping (Bool) -> Void, error: ((String) -> Void)? = nil) {
         switch type {
         case .photoLibrary:
@@ -171,21 +184,23 @@ public struct PermissionManager {
                     completion(true)
                 case .denied, .notDetermined, .restricted:
                     completion(false)
+                @unknown default:
+                    completion(false)
                 }
             }
-
+            
         case .notification:
             if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
                 error?("Device is simulator. Simulator not supported notifications")
                 return
             } else {
-                    UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert]) { granted, err in
-                        guard error == nil else {
-                            error?(err!.localizedDescription)
-                            return
-                        }
-                        completion(granted)
+                UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert]) { granted, err in
+                    guard error == nil else {
+                        error?(err!.localizedDescription)
+                        return
                     }
+                    completion(granted)
+                }
             }
         case .mic:
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
@@ -196,7 +211,7 @@ public struct PermissionManager {
                 completion(granted)
             }
         case .whenInUseLocation:
-            break // LocationManager.shared.requestWhenInUseAuthorization()
+        break // LocationManager.shared.requestWhenInUseAuthorization()
         case .alwaysLocation:
             break
         //            LocationManager.shared.requestAlwaysAuthorization()
@@ -210,28 +225,28 @@ public struct PermissionManager {
             }
         }
     }
-
+    
     public func openSettings(type: PermissionType) {
         var title = ""
         var message = ""
-
+        
         switch type {
         case .notification:
             title = "Уведомления не работают"
             message = "Пожалуйста разрешите допуск уведомлений"
-
+            
         case .whenInUseLocation, .alwaysLocation:
             title = "У нас нет доступа к вашей геопозиции"
             message = "Если вы хотите использовать карту, пожалуйста разрешите доступ к вашей геопозиции, что бы мы нашли вас"
-
+            
         case .camera:
             title = "У нас нет доступа к вашей камере"
             message = "Если вы хотите использовать камеру, пожалуйста разрешите доступ к вашей камере"
-
+            
         case .mic:
             title = "У нас нет доступа к вашему микрофону"
             message = "Если вы хотите использовать микрофон, пожалуйста разрешите доступ к вашему микрофону"
-
+            
         case .photoLibrary:
             title = "У нас нет доступа к вашей библиотеке фото"
             message = "Если вы хотите использовать фотогалерею, пожалуйста разрешите доступ к ней"
@@ -239,16 +254,16 @@ public struct PermissionManager {
             title = "У нас нет доступа к вашим контактам"
             message = "Если вы хотите пригласить кого нибудь из ваших контактов в приложение, разрешите доступ в настройках"
         }
-
+        
         DispatchQueue.main.async {
             let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-
+            
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
                 if UIApplication.shared.canOpenURL(settingsUrl) {
                     alertController.addAction(UIAlertAction(title: "Открыть настройки", style: .default, handler: { (_) -> Void in
-                            UIApplication.shared.open(settingsUrl, completionHandler: { success in
-                                print("Settings opened: \(success)") // Prints true
-                            })
+                        UIApplication.shared.open(settingsUrl, completionHandler: { success in
+                            print("Settings opened: \(success)") // Prints true
+                        })
                     }))
                 }
             }
