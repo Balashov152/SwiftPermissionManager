@@ -13,7 +13,7 @@ import Photos
 import UserNotifications
 import UIKit
 
-public struct PermissionManager {
+public class PermissionManager {
     public init() {}
     
     public func checkPermissions(types: [PermissionType], deniedType: ((PermissionType) -> Void)? = nil, allAccess: (() -> Void)? = nil) {
@@ -227,13 +227,14 @@ public struct PermissionManager {
     }
     
     public func openSettings(type: PermissionType) {
+        let bundle = Bundle(for: Swift.type(of: self))
         DispatchQueue.main.async {
-            let alertController = UIAlertController(title: type.localizeTitleSettingsAlert,
-                                                    message: type.localizesubtitleSettingsAlert, preferredStyle: .alert)
+            let alertController = UIAlertController(title: type.localizeTitleSettingsAlert(bundle: bundle),
+                                                    message: type.localizesubtitleSettingsAlert(bundle: bundle), preferredStyle: .alert)
             
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
                 if UIApplication.shared.canOpenURL(settingsUrl) {
-                    alertController.addAction(UIAlertAction(title: "Open settings".ncLocalized, style: .default, handler: { (_) -> Void in
+                    alertController.addAction(UIAlertAction(title: "Open settings".ncLocalized(bundle: bundle), style: .default, handler: { (_) -> Void in
                         UIApplication.shared.open(settingsUrl, completionHandler: { success in
                             print("Settings opened: \(success)") // Prints true
                         })
@@ -246,7 +247,7 @@ public struct PermissionManager {
                 visibleVc = presentedVC
             }
             
-            alertController.addAction(UIAlertAction(title: "Cancel".ncLocalized, style: .cancel, handler: nil))
+            alertController.addAction(UIAlertAction(title: "Cancel".ncLocalized(bundle: bundle), style: .cancel, handler: nil))
             visibleVc?.present(alertController, animated: true, completion: nil)
         }
     }
@@ -256,48 +257,48 @@ extension PermissionManager {
     public enum PermissionType {
         case notification, mic, camera, whenInUseLocation, alwaysLocation, photoLibrary, contacts
         
-        var localizeTitleSettingsAlert: String {
+        func localizeTitleSettingsAlert(bundle: Bundle) -> String {
             switch self {
             case .notification:
-                return "Notifications don't work".ncLocalized
+                return "Notifications don't work".ncLocalized(bundle: bundle)
             case .whenInUseLocation:
-                return "We don't have access to your location".ncLocalized
+                return "We don't have access to your location".ncLocalized(bundle: bundle)
             case .alwaysLocation:
-                return "We don't have access to your location".ncLocalized
+                return "We don't have access to your location".ncLocalized(bundle: bundle)
             case .camera:
-                return "We don't have access to your camera".ncLocalized
+                return "We don't have access to your camera".ncLocalized(bundle: bundle)
             case .mic:
-                return "We don't have access to your mic".ncLocalized
+                return "We don't have access to your mic".ncLocalized(bundle: bundle)
             case .photoLibrary:
-                return "We don't have access to your photo".ncLocalized
+                return "We don't have access to your photo".ncLocalized(bundle: bundle)
             case .contacts:
-                return "We don't have access to your contacts".ncLocalized
+                return "We don't have access to your contacts".ncLocalized(bundle: bundle)
             }
         }
         
-        var localizesubtitleSettingsAlert: String {
+        func localizesubtitleSettingsAlert(bundle: Bundle) -> String {
             switch self {
             case .notification:
-                return "NSNotificationUsageDescription".ncLocalized
+                return "NSNotificationUsageDescription".ncLocalized(bundle: bundle)
             case .whenInUseLocation:
-                return "NSLocationWhenInUseUsageDescription".ncLocalized
+                return "NSLocationWhenInUseUsageDescription".ncLocalized(bundle: bundle)
             case .alwaysLocation:
-                return "NSLocationAlwaysUsageDescription".ncLocalized
+                return "NSLocationAlwaysUsageDescription".ncLocalized(bundle: bundle)
             case .camera:
-                return "NSCameraUsageDescription".ncLocalized
+                return "NSCameraUsageDescription".ncLocalized(bundle: bundle)
             case .mic:
-                return "NSMicrophoneUsageDescription".ncLocalized
+                return "NSMicrophoneUsageDescription".ncLocalized(bundle: bundle)
             case .photoLibrary:
-                return "NSPhotoLibraryUsageDescription".ncLocalized
+                return "NSPhotoLibraryUsageDescription".ncLocalized(bundle: bundle)
             case .contacts:
-                return "NSContactsUsageDescription".ncLocalized
+                return "NSContactsUsageDescription".ncLocalized(bundle: bundle)
             }
         }
     }
 }
 
 private extension String {
-    var ncLocalized: String {
-        return NSLocalizedString(self, comment: "")
+    func ncLocalized(bundle: Bundle) -> String {
+        return NSLocalizedString(self, bundle: bundle, comment: "")
     }
 }
