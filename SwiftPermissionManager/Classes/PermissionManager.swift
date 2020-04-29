@@ -227,40 +227,13 @@ public struct PermissionManager {
     }
     
     public func openSettings(type: PermissionType) {
-        var title = ""
-        var message = ""
-        
-        switch type {
-        case .notification:
-            title = "Уведомления не работают"
-            message = "Пожалуйста разрешите допуск уведомлений"
-            
-        case .whenInUseLocation, .alwaysLocation:
-            title = "У нас нет доступа к вашей геопозиции"
-            message = "Если вы хотите использовать карту, пожалуйста разрешите доступ к вашей геопозиции, что бы мы нашли вас"
-            
-        case .camera:
-            title = "У нас нет доступа к вашей камере"
-            message = "Если вы хотите использовать камеру, пожалуйста разрешите доступ к вашей камере"
-            
-        case .mic:
-            title = "У нас нет доступа к вашему микрофону"
-            message = "Если вы хотите использовать микрофон, пожалуйста разрешите доступ к вашему микрофону"
-            
-        case .photoLibrary:
-            title = "У нас нет доступа к вашей библиотеке фото"
-            message = "Если вы хотите использовать фотогалерею, пожалуйста разрешите доступ к ней"
-        case .contacts:
-            title = "У нас нет доступа к вашим контактам"
-            message = "Если вы хотите пригласить кого нибудь из ваших контактов в приложение, разрешите доступ в настройках"
-        }
-        
         DispatchQueue.main.async {
-            let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            let alertController = UIAlertController(title: type.localizeTitleSettingsAlert,
+                                                    message: type.localizesubtitleSettingsAlert, preferredStyle: .alert)
             
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
                 if UIApplication.shared.canOpenURL(settingsUrl) {
-                    alertController.addAction(UIAlertAction(title: "Открыть настройки", style: .default, handler: { (_) -> Void in
+                    alertController.addAction(UIAlertAction(title: "Open settings".ncLocalized, style: .default, handler: { (_) -> Void in
                         UIApplication.shared.open(settingsUrl, completionHandler: { success in
                             print("Settings opened: \(success)") // Prints true
                         })
@@ -273,7 +246,7 @@ public struct PermissionManager {
                 visibleVc = presentedVC
             }
             
-            alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
+            alertController.addAction(UIAlertAction(title: "Cancel".ncLocalized, style: .cancel, handler: nil))
             visibleVc?.present(alertController, animated: true, completion: nil)
         }
     }
@@ -282,5 +255,49 @@ public struct PermissionManager {
 extension PermissionManager {
     public enum PermissionType {
         case notification, mic, camera, whenInUseLocation, alwaysLocation, photoLibrary, contacts
+        
+        var localizeTitleSettingsAlert: String {
+            switch self {
+            case .notification:
+                return "Notifications don't work".ncLocalized
+            case .whenInUseLocation:
+                return "We don't have access to your location".ncLocalized
+            case .alwaysLocation:
+                return "We don't have access to your location".ncLocalized
+            case .camera:
+                return "We don't have access to your camera".ncLocalized
+            case .mic:
+                return "We don't have access to your mic".ncLocalized
+            case .photoLibrary:
+                return "We don't have access to your photo".ncLocalized
+            case .contacts:
+                return "We don't have access to your contacts".ncLocalized
+            }
+        }
+        
+        var localizesubtitleSettingsAlert: String {
+            switch self {
+            case .notification:
+                return "NSNotificationUsageDescription".ncLocalized
+            case .whenInUseLocation:
+                return "NSLocationWhenInUseUsageDescription".ncLocalized
+            case .alwaysLocation:
+                return "NSLocationAlwaysUsageDescription".ncLocalized
+            case .camera:
+                return "NSCameraUsageDescription".ncLocalized
+            case .mic:
+                return "NSMicrophoneUsageDescription".ncLocalized
+            case .photoLibrary:
+                return "NSPhotoLibraryUsageDescription".ncLocalized
+            case .contacts:
+                return "NSContactsUsageDescription".ncLocalized
+            }
+        }
+    }
+}
+
+private extension String {
+    var ncLocalized: String {
+        return NSLocalizedString(self, comment: "")
     }
 }
