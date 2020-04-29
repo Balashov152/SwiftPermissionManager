@@ -14,6 +14,7 @@ import UserNotifications
 import UIKit
 
 public class PermissionManager {
+    public static var localizedBundle: Bundle?
     public init() {}
     
     public func checkPermissions(types: [PermissionType], deniedType: ((PermissionType) -> Void)? = nil, allAccess: (() -> Void)? = nil) {
@@ -227,7 +228,7 @@ public class PermissionManager {
     }
     
     public func openSettings(type: PermissionType) {
-        let bundle = Bundle(for: Swift.type(of: self))
+        let bundle = PermissionManager.localizedBundle ?? Bundle(for: Swift.type(of: self))
         DispatchQueue.main.async {
             let alertController = UIAlertController(title: type.localizeTitleSettingsAlert(bundle: bundle),
                                                     message: type.localizesubtitleSettingsAlert(bundle: bundle), preferredStyle: .alert)
