@@ -1,5 +1,5 @@
 PODS:
-  - SwiftPermissionManager (0.1.2)
+  - SwiftPermissionManager (0.2.4)
 
 DEPENDENCIES:
   - SwiftPermissionManager (from `../`)
@@ -9,8 +9,8 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  SwiftPermissionManager: 4e928e1553e1687d7cce691bcd198b1ab6c66296
+  SwiftPermissionManager: fec24ab8efe9d8ed0e6f380dd81f75f1a802dadf
 
 PODFILE CHECKSUM: f2e8ba692c02a9b5e7b05ca077f6822f408bc534
 
-COCOAPODS: 1.7.0
+COCOAPODS: 1.10.0

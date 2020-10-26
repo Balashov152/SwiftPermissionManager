@@ -110,6 +110,8 @@ public class PermissionManager {
                 } else {
                     denied?()
                 }
+            case .limited:
+                denied?()
             @unknown default:
                 denied?()
             }

@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'SwiftPermissionManager'
-  s.version          = '0.2.4'
-  s.summary          = 'SwiftPermissionManager writen on Swift 4.2. Manager for work with iOS Permission'
+  s.version          = '0.2.5'
+  s.summary          = 'SwiftPermissionManager writen on Swift 5.0. Manager for work with iOS Permission'
   s.swift_version    = '5.0'
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
