@@ -85,6 +85,8 @@ public class PermissionManager {
                         
                     case .authorized:
                         access?()
+                    case .ephemeral:
+                        denied?()
                     @unknown default:
                         denied?()
                         
@@ -185,6 +187,8 @@ public class PermissionManager {
                 case .authorized:
                     completion(true)
                 case .denied, .notDetermined, .restricted:
+                    completion(false)
+                case .limited:
                     completion(false)
                 @unknown default:
                     completion(false)
