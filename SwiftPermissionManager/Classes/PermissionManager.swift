@@ -249,9 +249,17 @@ public struct PermissionManager {
 public extension PermissionManager {
     struct LocalizedAlert {
         let title, subtitle, openSettings, cancel: String
+        
+        init(title: String, subtitle: String,
+             openSettings: String, cancel: String) {
+            self.title = title
+            self.subtitle = subtitle
+            self.openSettings = openSettings
+            self.cancel = cancel
+        }
     }
     
-     enum PermissionType {
+    enum PermissionType {
         case notification, mic, camera, whenInUseLocation
         case alwaysLocation, photoLibrary, photoLibraryLimited, contacts
     }
