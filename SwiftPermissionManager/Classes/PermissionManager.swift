@@ -250,7 +250,7 @@ public extension PermissionManager {
     struct LocalizedAlert {
         let title, subtitle, openSettings, cancel: String
         
-        init(title: String, subtitle: String,
+        public init(title: String, subtitle: String,
              openSettings: String, cancel: String) {
             self.title = title
             self.subtitle = subtitle
