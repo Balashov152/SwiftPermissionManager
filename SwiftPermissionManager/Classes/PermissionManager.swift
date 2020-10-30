@@ -13,225 +13,213 @@ import Photos
 import UserNotifications
 import UIKit
 
-public class PermissionManager {
+public extension PermissionManager {
+    typealias ResultModel = Result<PermissionType, PermissonError>
+    
+    enum PermissonError: Error {
+        case notSupport, denied, unknownDefault, error(text: String?)
+    }
+}
+
+public struct PermissionManager {
     public init() {}
     
-    public func checkPermissions(types: [PermissionType], deniedType: ((PermissionType) -> Void)? = nil, allAccess: (() -> Void)? = nil) {
-        var accessTypes: [PermissionType] = []
+    // MARK: Location
+    /// if we need request localiton permission, that must be use in your localtion manager
+    public func checkLocation(result: ((ResultModel) -> Void)) {
+        guard CLLocationManager.locationServicesEnabled() else {
+            result(ResultModel.failure(.notSupport))
+            return
+        }
+
+        let status: CLAuthorizationStatus
         
-        for type in types {
-            checkPermission(type: type, createRequestIfNeed: false, denied: {
-                deniedType?(type)
-                return
-            }) {
-                accessTypes.append(type)
-            }
+        if #available(iOS 14, *) {
+            status = CLLocationManager().authorizationStatus
+        } else {
+            status = CLLocationManager.authorizationStatus()
         }
         
-        if types == accessTypes {
-            allAccess?()
+        switch status {
+        case .notDetermined, .restricted, .denied:
+            result(.failure(.denied))
+            
+        case .authorizedWhenInUse:
+            result(.success(.whenInUseLocation))
+
+        case .authorizedAlways:
+            result(.success(.alwaysLocation))
+        @unknown default:
+            result(.failure(.denied))
         }
     }
     
-    /**
-     Check permission for define type.
-     Parameter needRequest installed to true for TypePermission(.whenInUseLocation, .alwaysLocation) associated with location will not call access and denied closures.
-     
-     - parameter type: Define type for check permission.
-     - parameter needRequest: if set to true, will be send request to dependence type. Default value is false.
-     - parameter access: This closure will be called if access is available. If needRequest installed to true and authorization status is denied then will be call after the user responds on request.
-     - parameter denied: This closure will be called if denied is available. If needRequest installed to true and authorization status is denied then will be call after the user responds on request.
-     */
-    public func checkPermission(type: PermissionType, createRequestIfNeed needRequest: Bool = false, denied: (() -> Void)? = nil, access: (() -> Void)? = nil) {
-        switch type {
-        case .whenInUseLocation, .alwaysLocation:
-            if CLLocationManager.locationServicesEnabled() {
-                switch CLLocationManager.authorizationStatus() {
-                case .notDetermined, .restricted, .denied:
-                    assert(!needRequest, "request localiton permission must be use in localtion manager")
-                    denied?()
-                    
-                case .authorizedWhenInUse:
-                    if type == .whenInUseLocation {
-                        access?()
-                    }
-                    
-                case .authorizedAlways:
-                    access?()
-                @unknown default:
-                    denied?()
+    // MARK: Notifications
+    public func checkNotificationPermission(requestOptions: UNAuthorizationOptions?, result: @escaping ((ResultModel) -> Void)) {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .notDetermined, .denied, .provisional:
+                if let requestOptions = requestOptions {
+                    self.requestNotificationPermission(options: requestOptions, result: result)
+                } else {
+                    result(.failure(.denied))
                 }
                 
-            } else {
-                print("Location services are not enabled")
-            }
-            
-        case .notification:
-            if #available(iOS 10.0, *) {
-                UNUserNotificationCenter.current().getNotificationSettings { settings in
-                    switch settings.authorizationStatus {
-                    case .notDetermined, .denied, .provisional:
-                        if needRequest {
-                            self.requestPermission(type: type, completion: { granted in
-                                if granted {
-                                    access?()
-                                } else {
-                                    denied?()
-                                }
-                            })
-                        } else {
-                            denied?()
-                        }
-                        
-                    case .authorized:
-                        access?()
-                    case .ephemeral:
-                        denied?()
-                    @unknown default:
-                        denied?()
-                        
-                    }
-                }
-            } else {
-                // Fallback on earlier versions
-            }
-            
-        case .photoLibrary:
-            switch PHPhotoLibrary.authorizationStatus() {
             case .authorized:
-                access?()
-            case .denied, .notDetermined, .restricted:
-                if needRequest {
-                    requestPermission(type: type, completion: { granted in
-                        if granted {
-                            access?()
-                        } else {
-                            denied?()
-                        }
-                    })
-                } else {
-                    denied?()
-                }
-            case .limited:
-                denied?()
+                result(.success(.notification))
+            case .ephemeral:
+                result(.failure(.unknownDefault)) // TODO: add to notification type
             @unknown default:
-                denied?()
-            }
-            
-        case .mic:
-            switch AVAudioSession.sharedInstance().recordPermission {
-            case .granted:
-                access?()
-            case .denied, .undetermined:
-                if needRequest {
-                    requestPermission(type: type, completion: { granted in
-                        if granted {
-                            access?()
-                        } else {
-                            denied?()
-                        }
-                    })
-                } else {
-                    denied?()
-                }
-            @unknown default:
-                denied?()
-            }
-        case .camera:
-            switch AVCaptureDevice.authorizationStatus(for: .video) {
-            case .authorized:
-                access?()
-            case .denied, .notDetermined, .restricted:
-                if needRequest {
-                    requestPermission(type: type, completion: { granted in
-                        if granted {
-                            access?()
-                        } else {
-                            denied?()
-                        }
-                    })
-                } else {
-                    denied?()
-                }
-            @unknown default:
-                denied?()
-            }
-            
-        case .contacts:
-            switch CNContactStore.authorizationStatus(for: .contacts) {
-            case .authorized:
-                access?()
-            case .denied, .notDetermined, .restricted:
-                if needRequest {
-                    requestPermission(type: type, completion: { granted in
-                        if granted {
-                            access?()
-                        } else {
-                            denied?()
-                        }
-                    })
-                } else {
-                    denied?()
-                }
-            @unknown default:
-                denied?()
+                result(.failure(.unknownDefault))
             }
         }
     }
     
-    public func requestPermission(type: PermissionType, completion: @escaping (Bool) -> Void, error: ((String) -> Void)? = nil) {
-        switch type {
-        case .photoLibrary:
-            PHPhotoLibrary.requestAuthorization { status in
-                switch status {
-                case .authorized:
-                    completion(true)
-                case .denied, .notDetermined, .restricted:
-                    completion(false)
-                case .limited:
-                    completion(false)
-                @unknown default:
-                    completion(false)
-                }
-            }
-            
-        case .notification:
-            if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
-                error?("Device is simulator. Simulator not supported notifications")
+    public func requestNotificationPermission(options: UNAuthorizationOptions, result: @escaping ((ResultModel) -> Void)) {
+        guard ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] == nil else {
+            result(.failure(.error(text: "Device is simulator. Simulator not supported notifications")))
+            return
+        }
+        
+        UNUserNotificationCenter.current().requestAuthorization(options: options) { granted, error in
+            guard granted, error == nil else {
+                result(.failure(.error(text: error?.localizedDescription)))
                 return
+            }
+            result(.success(.notification))
+        }
+    }
+    
+    
+    // MARK: PhotoLibrary
+    
+    /// for user on iOS 14
+    public enum PHPhotoLibraryRequest {
+        case addOnly, readWrite
+    }
+    
+    public func checkPhotoLibraryPermission(request options: PHPhotoLibraryRequest?, result: @escaping ((ResultModel) -> Void)) {
+        let status: PHAuthorizationStatus
+        
+        if #available(iOS 14, *) {
+            let level: PHAccessLevel
+            switch options {
+            case .addOnly:
+                level = .addOnly
+            case .readWrite:
+                level = .readWrite
+            case .none:
+                level = .readWrite
+            }
+            status = PHPhotoLibrary.authorizationStatus(for: level)
+        } else {
+            status = PHPhotoLibrary.authorizationStatus()
+        }
+        
+        
+        switch status {
+        case .denied, .notDetermined, .restricted:
+            if let options = options {
+                requestPhotoLibraryPermission(options: options, result: result)
             } else {
-                UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert]) { granted, err in
-                    guard error == nil else {
-                        error?(err!.localizedDescription)
-                        return
-                    }
-                    completion(granted)
-                }
+                result(.failure(.denied))
             }
-        case .mic:
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                completion(granted)
-            }
-        case .camera:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                completion(granted)
-            }
-        case .whenInUseLocation:
-        break // LocationManager.shared.requestWhenInUseAuthorization()
-        case .alwaysLocation:
-            break
-        //            LocationManager.shared.requestAlwaysAuthorization()
-        case .contacts:
-            CNContactStore().requestAccess(for: .contacts) { granted, err in
-                guard error == nil else {
-                    error?(err!.localizedDescription)
-                    return
-                }
-                completion(granted)
+        case .authorized:
+            result(.success(.photoLibrary))
+        case .limited:
+            result(.success(.photoLibraryLimited))
+        @unknown default:
+            result(.failure(.unknownDefault))
+        }
+    }
+    
+    public func requestPhotoLibraryPermission(options: PHPhotoLibraryRequest?, result: @escaping ((ResultModel) -> Void)) {
+        PHPhotoLibrary.requestAuthorization { status in
+            switch status {
+            case .denied, .notDetermined, .restricted:
+                result(.failure(.denied))
+            case .authorized:
+                result(.success(.photoLibrary))
+            case .limited:
+                result(.success(.photoLibraryLimited))
+            @unknown default:
+                result(.failure(.unknownDefault))
             }
         }
     }
-    public typealias LocalizedAlert = (title: String, subtitle: String, openSettings: String, cancel: String)
+    
+    // MARK: Mic
+    public func checkMicPermission(request: Bool, result: @escaping ((ResultModel) -> Void)) {
+        switch AVAudioSession.sharedInstance().recordPermission {
+        case .granted:
+            result(.success(.mic))
+        case .denied, .undetermined:
+            if request {
+                requestMicPermission(result: result)
+            } else {
+                result(.failure(.denied))
+            }
+        @unknown default:
+            result(.failure(.unknownDefault))
+        }
+    }
+    
+    public func requestMicPermission(result: @escaping ((ResultModel) -> Void)) {
+        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            result(granted ? .success(.mic) : .failure(.denied))
+        }
+    }
+    
+    // MARK: Camera
+    public func checkCameraPermission(request: Bool, result: @escaping ((ResultModel) -> Void)) {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            result(.success(.camera))
+        case .denied, .notDetermined, .restricted:
+            if request {
+                requestMicPermission(result: result)
+            } else {
+                result(.failure(.denied))
+            }
+        @unknown default:
+            result(.failure(.unknownDefault))
+        }
+    }
+    
+    public func requestCameraPermission(result: @escaping ((ResultModel) -> Void)) {
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            result(granted ? .success(.mic) : .failure(.denied))
+        }
+    }
+    
+    
+    // MARK: Contacts
+    
+    public func checkContactsPermission(request: Bool, result: @escaping ((ResultModel) -> Void)) {
+        switch CNContactStore.authorizationStatus(for: .contacts) {
+        case .authorized:
+            result(.success(.contacts))
+        case .denied, .notDetermined, .restricted:
+            if request {
+                requestMicPermission(result: result)
+            } else {
+                result(.failure(.denied))
+            }
+        @unknown default:
+            result(.failure(.unknownDefault))
+        }
+    }
+    
+    public func requestContactsPermission(result: @escaping ((ResultModel) -> Void)) {
+        CNContactStore().requestAccess(for: .contacts) { granted, error in
+            guard granted, error == nil else {
+                result(.failure(.error(text: error?.localizedDescription)))
+                return
+            }
+            result(.success(.contacts))
+        }
+    }
+    
     public func openSettings(type: PermissionType, localized: LocalizedAlert) {
         DispatchQueue.main.async {
             let alertController = UIAlertController(title: localized.title,
@@ -258,8 +246,13 @@ public class PermissionManager {
     }
 }
 
-extension PermissionManager {
-    public enum PermissionType {
-        case notification, mic, camera, whenInUseLocation, alwaysLocation, photoLibrary, contacts
+public extension PermissionManager {
+    struct LocalizedAlert {
+        let title, subtitle, openSettings, cancel: String
+    }
+    
+     enum PermissionType {
+        case notification, mic, camera, whenInUseLocation
+        case alwaysLocation, photoLibrary, photoLibraryLimited, contacts
     }
 }
